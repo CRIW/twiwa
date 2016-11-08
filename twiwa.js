@@ -87,10 +87,13 @@ function fixTweetText(text){
 //var stream = T.stream('statuses/sample');
 
 var cachedTweets = [];
-var MAX_CACHED_TWEETS = 100;
+var MAX_CACHED_TWEETS = 20;
 var cachedImages = [];
 var MAX_CACHED_IMAGES = 10;
 var cacheFull = false;
+
+var trump = 0;
+var hillary = 0;
 
 var twfn = function(tweet){
   //console.log(tweet);
@@ -104,6 +107,18 @@ var twfn = function(tweet){
   'handle': tweet.user.screen_name,
   'profileimg': tweet.user.profile_image_url
   };
+
+  if(/trump/i.test(tw.text)){
+    trump++;
+    io.emit('bar', {'hillary': hillary, 'trump': trump});
+  }
+
+  if((/hillary/i.test(tw.text)) || (/clinton/i.test(tw.tweet)) || (/ImWithHer/i.test(tw.tweet)) ){
+    hillary++;
+    io.emit('bar', {'hillary': hillary, 'trump': trump});
+  }
+
+
   if(tweet.entities.media){
     tweet.entities.media.forEach(function(media){
       if(media.type == 'photo'){
@@ -136,13 +151,11 @@ var stream = T.stream('statuses/filter', {track: tags, language: ['de', 'en']});
 var stream2 = T.stream('statuses/filter', {track: tags2});
 console.log('Stream connected');
 var drosselkom = function(tweet){
-  twfn(tweet);
-  return;
-  if(Math.random() > 0.3){
+  if(Math.random() > 0.9){
     twfn(tweet);
   }
 };
-stream.on('tweet', twfn);
+stream.on('tweet', drosselkom);
 stream2.on('tweet', twfn);
 
 

@@ -14,7 +14,7 @@
     width: 60vw;
     position: fixed;
     left: 0;
-    top: 0;
+    top: 3vh;
     transition: max-height 1s ease-in;
     max-height: 0px;
   }
@@ -22,7 +22,7 @@
     width: 40vw;
     position: fixed;
     right: 0;
-    top: 0;
+    top: 3vh;
   }
   .photo{
     width: 100%;
@@ -97,14 +97,34 @@
     font-weight: normal;
   }
   .hillary{
-    color: #8080ff;
+    color: #8080ff !important;
   }
   .trump{
     color: #ff8080;
   }
+  #bar{
+	background-color: #ff8080;
+	height: 3vh;
+	width: 100vw;
+	position: fixed;
+	top: 0;
+	left: 0;
+	padding: 0;
+  }
+  #bar-content{
+	background-color: #8080ff;
+	height: 3vh;
+	width: 0vw;
+	position: fixed;
+	top: 0;
+	left: 0;
+	padding: 0;
+	transition: width 1s;
+  }
 </style>
 </head>
 <body>
+  <div id="bar"><div id="bar-content"></div>
   <script src="./socket.io/socket.io.js"></script>
   <script>
     var tweet_limit = 100;
@@ -199,8 +219,26 @@
       if(/trump/i.test(tweetobj.tweet)){
 	tweet.classList.add('trump');
       }
+      if(/republican/i.test(tweetobj.tweet)){
+	tweet.classList.add('trump');
+      }
+      if(/\s+GOP\s+/i.test(tweetobj.tweet)){
+	tweet.classList.add('trump');
+      }
       if(/hillary/i.test(tweetobj.tweet)){
 	tweet.classList.add('hillary');
+      }
+      if(/clinton/i.test(tweetobj.tweet)){
+	tweet.classList.add('hillary');
+      }
+      if(/ImWithHer/i.test(tweetobj.tweet)){
+	tweet.classList.add('hillary');
+      }
+      if(/democrat/i.test(tweetobj.tweet)){
+	tweet.classList.add('hillary');
+      }
+      if(/stein/i.test(tweetobj.tweet)){
+        tweet.classList.add('stein');
       }
       container.appendChild(tweet);
 
@@ -262,6 +300,12 @@
         }
       });
 
+    });
+
+    socket.on('bar', function(bar){
+	var progress = (bar.hillary / (bar.hillary + bar.trump)) * 100;
+	console.log("progress: " + progress);
+	document.getElementById('bar-content').style.width = progress + "vw";
     });
   </script>
   <div id="tweet-container">
