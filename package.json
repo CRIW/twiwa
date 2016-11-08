@@ -1,0 +1,17 @@
+{
+  "name": "twiwa",
+  "version": "0.0.0",
+  "description": "Twitterwall of CRIW for ESCAU",
+  "main": "wall.js",
+  "scripts": {
+    "test": "node wall.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.13.4",
+    "jsdom": "^9.0.0",
+    "socket.io": "^1.4.6",
+    "twit": "^2.2.4"
+  }
+}

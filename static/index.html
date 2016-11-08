@@ -1,0 +1,274 @@
+<html>
+<head>
+<style>
+  body{
+    font-size: 14pt;
+    color: white;
+    font-weight: bold;
+    font-family: 'Roboto','Ubuntu', sans-serif;
+    background-color: black;
+    background-image: url('static/EurovisionBackgroundDarkest.jpg');
+    overflow: hidden;
+  }
+  #tweet-container{
+    width: 60vw;
+    position: fixed;
+    left: 0;
+    top: 0;
+    transition: max-height 1s ease-in;
+    max-height: 0px;
+  }
+  #image-container{
+    width: 40vw;
+    position: fixed;
+    right: 0;
+    top: 0;
+  }
+  .photo{
+    width: 100%;
+    opacity: 0.5;
+  }
+  .expander{
+    max-height: 0;
+    transition: max-height 1s ease-in;
+    overflow: hidden;
+    padding: 0;
+    margin: 0;
+    margin-bottom: 10px;
+    border-radius: 2vmin;
+  }
+  .tweetimage{
+    position: absolute;
+    bottom: 0;
+    left: 0;
+  }
+  img{
+    padding: 0;
+    margin: 0;
+  }
+  .imgcontainer{
+    background-color: rgba(0,0,0,0.5);
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    padding: 0.5vmin;
+    width: 100%;
+  }
+  .imgname{
+  }
+  .imgtext{
+    font-weight: normal;
+  }
+  .tweet-container{
+    max-height: 0;
+    transition: max-height 1s;
+    overflow: hidden;
+    margin: 1vmin;
+    position:relative;
+  }
+  .tweet{
+    /*position: absolute;*/
+    /*float:right;*/
+    padding-top: 3vh;
+    margin-left: 12vmin;
+    font-weight: normal;
+    line-height: 150%;
+    margin-bottom: 1vh;
+    /*position: absolute;
+    bottom: 0;*/
+  }
+  .profileimage{
+    position: absolute;
+    top: 0vh;
+    left: 0vmin;
+    width: 10vh;
+    height: 10vh;
+    border-radius: 2vmin;
+  }
+  .profilename{
+    position: absolute;
+    left: 12vmin;
+    top: 0vmin;
+    font-size: 14pt;
+    height: 3vh;
+  }
+  .profilehandle{
+    margin-left: 0.75em;
+    font-weight: normal;
+  }
+  .hillary{
+    color: #8080ff;
+  }
+  .trump{
+    color: #ff8080;
+  }
+</style>
+</head>
+<body>
+  <script src="./socket.io/socket.io.js"></script>
+  <script>
+    var tweet_limit = 100;
+    var img_limit = 10;
+
+    var tweet_stack = [];
+    var tweet_loading = false;
+    var tweetid = 0;
+
+    var image_stack = [];
+    var image_loading = false;
+    var imgid = 0;
+
+    var image_callback = function(){
+      image_loading = true;
+      var imgobj = image_stack.shift();
+      if(imgobj.ad){
+        console.log('displaying ad');
+      }
+      var expander = document.createElement('div');
+      expander.style.position = 'relative';
+      expander.classList.add('expander');
+
+      /*
+      imgobj.image.style.position = "absolute";
+      imgobj.image.style.bottom = 0;
+      imgobj.image.style.left = 0;
+      */
+
+      setTimeout(function(){expander.style.height = imgobj.image.height;}, 10);
+      var imgchild = expander.appendChild(imgobj.image);
+
+      if(imgobj.tweet.text){
+        var imgcontainer = document.createElement('div');
+        imgcontainer.classList.add('imgcontainer');
+        expander.appendChild(imgcontainer);
+
+        var imguser = document.createElement('span');
+        imguser.classList.add('imguser');
+        imguser.textContent = imgobj.tweet.name + "(@" + imgobj.tweet.handle + "): ";
+        imgcontainer.appendChild(imguser);
+
+        var imgtext = document.createElement('span');
+        imgtext.classList.add('imgtext');
+        imgtext.textContent = imgobj.tweet.text;
+        imgcontainer.appendChild(imgtext);
+
+        expander.appendChild(imgcontainer);
+      }
+
+
+      //tw.textContent = tweet.name + "(@" + tweet.user  + ")" + ": " + tweet.text;
+      var imageContainer = document.getElementById('image-container');
+      imageContainer.insertBefore(expander, imageContainer.firstChild);
+      setTimeout(function(){expander.style['max-height'] = '100vh';}, 10);
+
+      if(imageContainer.children.length > img_limit){
+        imageContainer.removeChild(imageContainer.children[img_limit]);
+      }
+
+      if(image_stack.length > 0){
+        setTimeout(image_callback, 1000);
+      }else{
+        image_loading = false;
+      }
+    }
+
+    var tweet_callback = function(){
+      tweet_loading = true;
+      var tweetobj = tweet_stack.shift();
+      var container = document.createElement('div');
+      container.style.position = 'relative';
+      container.classList.add('tweet-container');
+
+      var profilename = document.createElement('div');
+      profilename.textContent = tweetobj.name;
+      profilename.classList.add('profilename');
+
+      var profilehandle = document.createElement('span');
+      profilehandle.textContent = '(@' + tweetobj.handle + ')';
+      profilehandle.classList.add('profilehandle');
+      profilename.appendChild(profilehandle);
+
+      container.appendChild(profilename);
+
+      var profileimage = tweetobj.image;
+      container.appendChild(profileimage);
+
+      var tweet = document.createElement('div');
+      tweet.textContent = tweetobj.tweet;
+      tweet.classList.add('tweet');
+      if(/trump/i.test(tweetobj.tweet)){
+	tweet.classList.add('trump');
+      }
+      if(/hillary/i.test(tweetobj.tweet)){
+	tweet.classList.add('hillary');
+      }
+      container.appendChild(tweet);
+
+      //tw.textContent = tweet.name + "(@" + tweet.user  + ")" + ": " + tweet.text;
+      var tweetContainer = document.getElementById('tweet-container');
+      tweetContainer.insertBefore(container, tweetContainer.firstChild);
+      setTimeout(function(){container.style['max-height'] = '100vh'; container.style['min-height'] = '10vh';}, 10);
+
+      if(tweetContainer.children.length > tweet_limit){
+        tweetContainer.removeChild(tweetContainer.children[tweet_limit]);
+      }
+
+      if(tweet_stack.length > 0){
+        setTimeout(tweet_callback, 1000);
+      }else{
+        tweet_loading = false;
+      }
+    }
+
+    var socket = io.connect(window.location.host);
+
+    socket.on('tweet', function (tweet) {
+      var twimg = document.createElement('img');
+      twimg.setAttribute('src', tweet.profileimg);
+      twimg.classList.add('profileimage');
+
+      twimg.addEventListener('load', function(){
+        tweet_stack.push({
+          'tweet': tweet.text,
+          'name': tweet.name,
+          'handle': tweet.handle,
+          'profileimg': tweet.profileimage,
+          'image': twimg
+        });
+        if(!tweet_loading){
+          tweet_callback();
+        }
+      });
+
+    });
+
+    socket.on('photo', function (tweet) {
+
+      var img = document.createElement('img');
+      img.setAttribute('src', tweet.image_url);
+      img.src = tweet.image_url;
+      img.style.width = '40vw';
+      img.classList.add('tweetimage');
+      img.addEventListener('load', function(){
+        image_stack.push({
+          'tweet' : tweet,
+          'image': img,
+          'height': img.height,
+          'ad': tweet.ad,
+          'ratio' : (img.width / img.height)
+        });
+        if(!image_loading){
+          image_callback();
+        }
+      });
+
+    });
+  </script>
+  <div id="tweet-container">
+
+  </div>
+  <div id="image-container">
+
+  </div>
+</body>
+</html>

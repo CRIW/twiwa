@@ -1,0 +1,26 @@
+<html>
+<head>
+<style>
+  #test{
+    height: 100px;
+    background-color: #0000FF;
+    border: 1px solid black;
+    max-height: 0;
+    transition: max-height 0.15s ease-out;
+    overflow: hidden;
+  }
+
+  #test:hover{
+    height: 300px;
+    max-height: 500px;
+    transition: max-height 0.25s ease-in;
+  }
+</style>
+</head>
+<body>
+  <div id="test">
+  </div>
+  <p>Blubb</p>
+</body>
+
+</html>
